@@ -2,9 +2,9 @@ node_modules
 .vscode
 .DS_Store
 
-3d_assets/
+3d_assets/*
 src/js/lib/*
-src/blend
+src/blend/*
 
 !3d_assets/.gitkeep
 !src/js/lib/.gitkeep
