@@ -1,0 +1,11 @@
+node_modules
+.vscode
+.DS_Store
+
+3d_assets/
+src/js/lib/*
+src/blend
+
+!3d_assets/.gitkeep
+!src/js/lib/.gitkeep
+!src/blend/.gitkeep

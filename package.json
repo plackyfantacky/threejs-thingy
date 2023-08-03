@@ -1,0 +1,33 @@
+{
+	"name": "threejs-thingy",
+	"version": "0.1.0",
+	"description": "A simple threejs starter",
+	"main": "Gruntfile.js",
+	"author": {
+		"name": "Adam Trickett",
+		"email": "me@adamtrickett.com",
+		"url": "https://adamtrickett.com"
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"license": "UNLICENSED",
+	"config": {
+		"project": "threejs-thingy",
+		"target": "",
+		"url": "https://adamtrickett.com"
+	},
+	"devDependencies": {
+		"grunt": "^1.6.1",
+		"grunt-banner": "^0.6.0",
+		"grunt-contrib-watch": "^1.1.0",
+		"grunt-dart-sass": "^2.0.1",
+		"sass": "^1.64.1",
+		"vite": "^4.4.8"
+	},
+	"dependencies": {
+		"three": "^0.155.0"
+	}
+}
