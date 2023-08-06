@@ -5,8 +5,6 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 
 import InfiniteGridHelper from './lib/THREE.InfiniteGridHelper/InfiniteGridHelper.js'
 
-
-
 let container, camera, scene, renderer, controls, clock, mixer
 let loader, dracoLoader
 let emptyLight
@@ -24,13 +22,11 @@ function init() {
 	controls = new OrbitControls(camera, renderer.domElement)
 
 	dracoLoader = new DRACOLoader()
-	//dracoLoader.setDecoderPath('./decoder/')
-	dracoLoader.setDecoderPath('https://adamtrickett.com/wp-content/plugins/threejs-thingy/decoder/')
+	dracoLoader.setDecoderPath(wp_vars.plugin_url + 'decoder/')
 	
 	loader = new GLTFLoader()
 	loader.setDRACOLoader(dracoLoader)
-	//loader.setPath('./3d_assets/')
-	loader.setPath('https://adamtrickett.com/wp-content/plugins/threejs-thingy/3d_assets/')
+	loader.setPath(wp_vars.plugin_url + '3d_assets/')
 
 	loader.load('3d-text.glb', function (gltf) {
 		mixer = new THREE.AnimationMixer(gltf.scene)
