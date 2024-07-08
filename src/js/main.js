@@ -1,109 +1,128 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 
-import InfiniteGridHelper from './lib/THREE.InfiniteGridHelper/InfiniteGridHelper.js'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
-let container, camera, scene, renderer, controls, clock, mixer
-let loader, dracoLoader
-let emptyLight
+import InfiniteGridHelper from '@plackyfantacky/three.infinitegridhelper';
 
-init()
+let container, camera, scene, renderer, orbiter, mixer
+let cameraDolly, cameraTarget
+let clock = new THREE.Clock()
 
-function init() {
-	container = document.getElementById('threejs-thingy')
-	window.addEventListener('resize', onWindowResize, false)
 
-	scene = new THREE.Scene()
-	renderer = new THREE.WebGLRenderer()
-	clock = new THREE.Clock()
-	camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000)
-	controls = new OrbitControls(camera, renderer.domElement)
+container = document.getElementById('threejs-thingy')
 
-	dracoLoader = new DRACOLoader()
+init().catch(error => console.error(error))
+
+function loadModel(url) {
+    const loader = new GLTFLoader()
+    const dracoLoader = new DRACOLoader()
 	dracoLoader.setDecoderPath(wp_vars.plugin_url + 'decoder/')
-	
-	loader = new GLTFLoader()
 	loader.setDRACOLoader(dracoLoader)
-	loader.setPath(wp_vars.plugin_url + '3d_assets/')
+    return loader.loadAsync(url)
+}
 
-	loader.load('3d-text.glb', function (gltf) {
-		mixer = new THREE.AnimationMixer(gltf.scene)
-		mixer.clipAction(gltf.animations[0])
-		initialiseScene(gltf)
-		scene.add(gltf.scene)
-	})
+async function init() {
+	
+    scene = new THREE.Scene()
+    renderer = new THREE.WebGLRenderer({antialias: true})
 
-	let rect = container.getBoundingClientRect()
-	camera.aspect = rect.width / rect.height
-	camera.updateProjectionMatrix()
-	renderer.setSize(rect.width, rect.height)
+    let gltfData = await loadModel(wp_vars.plugin_url + '3d_assets/scene-main.glb')
 
-	renderer.setAnimationLoop(render)
-	renderer.setPixelRatio(window.devicePixelRatio)
-	renderer.physicallyCorrectLights = true
-	container.appendChild(renderer.domElement)
+    if(gltfData) {
+        scene.add(gltfData.scene)
+        
+        cameraDolly = gltfData.scene.getObjectByName('cameraDolly')
+        cameraTarget = gltfData.scene.getObjectByName('cameraTarget')
+        pixelType = gltfData.scene.getObjectByName('pixeltype')
 
-	controls.autoRotate = true
-	controls.autoRotateSpeed = - 0.75
-	controls.enableDamping = true
-	controls.target.set(0, 0.27, 0)
-	controls.update()
+        camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000)
+        camera.zoom = 0.75
+
+        //adding this made me go 'WOW' when I saw the lighting
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+        //renderer settings
+        renderer.setAnimationLoop(render)
+	    renderer.setPixelRatio(window.devicePixelRatio)
+	    container.appendChild(renderer.domElement)
+
+        //add some orbit controls to the camera
+        orbiter = new OrbitControls(camera, renderer.domElement)
+        orbiter.enableDamping = true
+    
+        //update the camera with the initial position of the cameraDolly
+        camera.position.copy(cameraDolly.position)
+        //camera.lookAt(cameraTarget.position)
+        orbiter.target = cameraTarget.position
+        orbiter.update()
+
+        // emptyTarget = new TransformControls(camera, renderer.domElement);
+        // emptyTarget.addEventListener('change', render);
+        // emptyTarget.addEventListener('dragging-changed', function (event) {
+        //     orbiter.enabled = ! event.value;
+        // });
+        // scene.add(emptyTarget);
+        // emptyTarget.attach(cameraTarget);
+        // orbiter.update()
+
+
+        // emptyDolly = new TransformControls(camera, renderer.domElement);
+        // emptyDolly.addEventListener('change',  render);
+        // emptyDolly.addEventListener('dragging-changed', function (event) {
+        //     orbiter.enabled = ! event.value;
+        // });
+        // scene.add(emptyDolly);
+        // emptyDolly.attach(cameraDolly);
+        // orbiter.update()
+
+        //initialise the background
+        scene.background = new THREE.Color('#ffca8a')
+        let grid = new InfiniteGridHelper(0.1, 1, new THREE.Color('white'), 100, 'xzy');
+        scene.add(grid);
+    
+        //add some lighting
+        let directionalLight = new THREE.DirectionalLight('white', 3, 100)
+        directionalLight.castShadow = true
+        scene.add(new THREE.AmbientLight(0x404040, 12))
+        scene.add(directionalLight)
+
+        mixer = new THREE.AnimationMixer(gltfData.scene)
+	
+        //this plays the animation for the cameraTarget
+        mixer.clipAction(gltfData.animations[0]).play()
+
+        //this plays the animation for the cameraDolly following the path
+        mixer.clipAction(gltfData.animations[1]).play()
+
+        //console.log('gltfData', gltfData)
+    }
 }
 
 function render() {
-	if (mixer) mixer.update(clock.getDelta())
-	controls.update()
+    if(resizeRendererToDisplaySize(renderer)) {
+        const canvas = renderer.domElement
+        camera.aspect = canvas.clientWidth / canvas.clientHeight
+        camera.updateProjectionMatrix()
+    }
+    if (mixer) mixer.update(clock.getDelta())
+    camera.position.copy(cameraDolly.position)
+	orbiter.update()
 	renderer.render(scene, camera)
 }
 
-function initialiseScene(gltf) {
-
-	//let plane = new THREE.GridHelper(25, 25)
-	//plane.material.color = new THREE.Color('white')
-	scene.background = new THREE.Color('#ffca8a')
-	//scene.add(plane)
-
-	let grid = new InfiniteGridHelper(0.1, 1, new THREE.Color('white'), 100, 'xzy');
-	scene.add(grid);
-
-	gltf.scene.getObjectByName('nerdmesh').material = new THREE.MeshStandardMaterial({ color: 0xf99d2a })
-	gltf.scene.getObjectByName('formesh').material = new THREE.MeshStandardMaterial({ color: 0xffd133 })
-	gltf.scene.getObjectByName('hiremesh').material = new THREE.MeshStandardMaterial({ color: 0xe44d26 })
-
-	scene.add(new THREE.AmbientLight(0x404040, 3))
-
-	emptyLight = gltf.scene.getObjectByName('emptyLight')
-	let directionalLight = new THREE.DirectionalLight('white', 3, 100)
-	directionalLight.position.copy(emptyLight.position)
-	directionalLight.castShadow = true
-	scene.add(directionalLight)
-
-	if (typeof gltf.cameras !== 'undefined' && gltf.cameras.length > 0) {
-		camera.position.copy(gltf.scene.children[5].position)
-		controls.update()
-	}
-}
-
-function onWindowResize() {
-	const planeAspectRatio = 16 / 9;
-	const fov = 50;
-
-	if (camera.aspect > planeAspectRatio) {
-		// window too large
-		camera.zoom = 2;
-		const cameraHeight = Math.tan(THREE.MathUtils.degToRad(fov / 2));
-		const ratio = camera.aspect / planeAspectRatio;
-		const newCameraHeight = cameraHeight / ratio;
-		camera.fov = THREE.MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2;
-	} else {
-		// window too narrow
-		camera.fov = fov;
-		camera.zoom = 3;
-	}
-	let rect = container.getBoundingClientRect()
-	camera.aspect = rect.width / rect.height
-	camera.updateProjectionMatrix()
-	renderer.setSize(rect.width, rect.height)
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement
+    const pixelRatio = window.devicePixelRatio
+    const width = Math.floor(canvas.clientWidth * pixelRatio)
+    const height = Math.floor(canvas.clientHeight * pixelRatio)
+    const needResize = canvas.width !== width || canvas.height !== height
+    if (needResize) {
+        renderer.setSize(width, height, false)
+    }
+    return needResize
 }

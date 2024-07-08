@@ -9,9 +9,13 @@
 		"url": "https://adamtrickett.com"
 	},
 	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
-		"preview": "vite preview"
+		"build:js": "node _esbuild/build.config.mjs",
+		"build:css": "tailwindcss src/css/main.css -o dist/threejs-thingy.css",
+		"watch:js": "node _esbuild/watch.config.mjs",
+		"watch:css": "tailwindcss src/css/main.css -o dist/threejs-thingy.css --watch",
+		"watch": "concurrently \"npm run watch:js\" \"npm run watch:css\"",
+		"sync": "browser-sync start --proxy \"$npm_config_hostname\"  --host \"$npm_config_hostname\" --no-inject-changes --files=\"../\"",
+		"watch:sync": "concurrently \"npm run watch\" \"npm run sync\""
 	},
 	"license": "UNLICENSED",
 	"config": {
@@ -19,15 +23,19 @@
 		"target": "",
 		"url": "https://adamtrickett.com"
 	},
-	"devDependencies": {
-		"grunt": "^1.6.1",
-		"grunt-banner": "^0.6.0",
-		"grunt-contrib-watch": "^1.1.0",
-		"grunt-dart-sass": "^2.0.1",
-		"sass": "^1.64.1",
-		"vite": "^4.4.8"
-	},
 	"dependencies": {
+		"@plackyfantacky/three.infinitegridhelper": "^1.0.1",
 		"three": "^0.155.0"
+	},
+	"devDependencies": {
+		"autoprefixer": "^10.4.19",
+		"browser-sync": "^3.0.2",
+		"concurrently": "^8.2.2",
+		"esbuild": "^0.23.0",
+		"postcss": "^8.4.39",
+		"postcss-import": "^16.1.0",
+		"postcss-nested": "^6.0.1",
+		"postcss-nested-ancestors": "^3.0.0",
+		"tailwindcss": "^3.4.4"
 	}
 }
