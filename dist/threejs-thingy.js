@@ -25185,7 +25185,9 @@
   var cameraTarget;
   var clock = new Clock();
   container = document.getElementById("threejs-thingy");
-  init().catch((error) => console.error(error));
+  if (container) {
+    init().catch((error) => console.error(error));
+  }
   function loadModel(url) {
     const loader = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
