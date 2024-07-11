@@ -25,6 +25,7 @@
 	},
 	"dependencies": {
 		"@plackyfantacky/three.infinitegridhelper": "^1.0.1",
+		"camera-controls": "^2.8.5",
 		"three": "^0.155.0"
 	},
 	"devDependencies": {
