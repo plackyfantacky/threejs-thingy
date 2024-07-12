@@ -38,47 +38,50 @@ async function init() {
 
         camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.zoom = 0.75;
-        camera.position.set(cameraDolly.position.x * -1, cameraDolly.position.y, cameraDolly.position.z);
-
+        //camera.position.set(cameraDolly.position.z, cameraDolly.position.y, cameraDolly.position.x * -1);
+    
         const cameraControls = new CameraControls(camera, renderer.domElement);
+        cameraControls.setLookAt(
+            cameraDolly.position.z,
+            cameraDolly.position.y,
+            cameraDolly.position.x * -1,
+            cameraTarget.position.x,
+            cameraTarget.position.y,
+            cameraTarget.position.z,
+            true
+        );
+        cameraControls.dollyTo(5.5, true);
+        cameraControls.setFocalOffset(-2, 0, 0);
 
+        let newEmpty3 = new THREE.Object3D();
+        newEmpty3.position.set(cameraDolly.position.z, cameraDolly.position.y, cameraDolly.position.x * -1);
+        scene.add(newEmpty3);
 
         //adding this made me go 'WOW' when I saw the lighting
         const pmremGenerator = new THREE.PMREMGenerator(renderer);
         scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.04).texture;
 
         //renderer settings
-        //renderer.setAnimationLoop(render)
 	    renderer.setPixelRatio(window.devicePixelRatio);
 	    container.appendChild(renderer.domElement);
 
-        //add some orbit controls to the camera
-        //orbiter = new OrbitControls(camera, renderer.domElement)
-        //orbiter.enableDamping = true
-    
-        //update the camera with the initial position of the cameraDolly
-        //camera.position.copy(cameraDolly.position)
-        //camera.lookAt(cameraTarget.position)
-        // orbiter.target = cameraTarget.position
-        // orbiter.update()
+        // emptyTarget = new TransformControls(camera, renderer.domElement);
+        // emptyTarget.addEventListener('change', render);
+        // emptyTarget.addEventListener('dragging-changed', function (event) { cameraControls.enabled = ! event.value; });
+        // scene.add(emptyTarget);
+        // emptyTarget.attach(cameraTarget);
 
-        emptyTarget = new TransformControls(camera, renderer.domElement);
-        emptyTarget.addEventListener('change', render);
-        emptyTarget.addEventListener('dragging-changed', function (event) {
-            cameraControls.enabled = ! event.value;
-        });
-        scene.add(emptyTarget);
-        emptyTarget.attach(cameraTarget);
+        // emptyDolly = new TransformControls(camera, renderer.domElement);
+        // emptyDolly.addEventListener('change',  render);
+        // emptyDolly.addEventListener('dragging-changed', function (event) { cameraControls.enabled = ! event.value; });
+        // scene.add(emptyDolly);
+        // emptyDolly.attach(cameraDolly);
 
-
-        emptyDolly = new TransformControls(camera, renderer.domElement);
-        emptyDolly.addEventListener('change',  render);
-        emptyDolly.addEventListener('dragging-changed', function (event) {
-            cameraControls.enabled = ! event.value;
-        });
-        scene.add(emptyDolly);
-        emptyDolly.attach(cameraDolly);
-        // orbiter.update()
+        // emptyEmpty3 = new TransformControls(camera, renderer.domElement);
+        // emptyEmpty3.addEventListener('change',  render);
+        // emptyEmpty3.addEventListener('dragging-changed', function (event) { cameraControls.enabled = ! event.value; });
+        // scene.add(emptyEmpty3);
+        // emptyEmpty3.attach(newEmpty3);
 
         //initialise the background
         scene.background = new THREE.Color('#ffca8a');
@@ -100,6 +103,8 @@ async function init() {
         //mixer.clipAction(gltfData.animations[1]).play()
 
         //console.log('gltfData', gltfData)
+
+        globalThis.cameraControls = cameraControls;
 
         render();
 
