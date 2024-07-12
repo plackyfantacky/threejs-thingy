@@ -19,6 +19,27 @@
     add_shortcode('threejs-thingy', 'threejs_thingy_shortcode');
 	function threejs_thingy_shortcode() {
 		return <<<HTML
-            <div id="threejs-thingy"></div>
+            <div id="threejs-thingy">
+                <canvas id="thingy-canvas" class="max-h-[500px]"></canvas>
+                <div class="thingy-stats"></div>
+                <div class="thingy-labels">
+                    <template id="thingy-label-template">
+                        <div class="label">
+                            <span class="x">x</span>
+                            <span class="y">y</span>
+                            <span class="z">z</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
         HTML;
 	}
+
+    add_shortcode('threejs-thingy-controls', 'threejs_thingy_controls_shortcode');
+    function threejs_thingy_controls_shortcode() {
+        return <<<HTML
+            <ul id="threejs-thingy-controls" class="w-60 md:w-80 min-h-full p-4 bg-base-100">
+                <li class="flex flex-row gap-2"><input id="thingy-overlays" class="checkbox checkbox-md" type="checkbox" /> Show debug overlays</li>
+            </ul>
+        HTML;
+    }   

@@ -447,13 +447,82 @@ video {
 }
 
 #threejs-thingy {
+  position: relative;
   height: 100%;
   width: 100%;
+  .thingy-stats {
+    position: absolute;
+  }
+  .thingy-stats {
+    top: 0px;
+  }
+  .thingy-stats {
+    left: 0px;
+  }
+  .thingy-stats {
+    & > div {
+      position: absolute !important;
+    }
+  }
+  .thingy-labels {
+    position: absolute;
+  }
+  .thingy-labels {
+    top: 0px;
+  }
+  .thingy-labels {
+    left: 0px;
+  }
+  .thingy-labels {
+    & > div {
+      position: absolute !important;
+    }
+  }
   canvas {
     height: 100%;
   }
   canvas {
     width: 100%;
+  }
+  .label {
+    position: relative;
+  }
+  .label {
+    display: flex;
+  }
+  .label {
+    flex-direction: column;
+  }
+  .label {
+    --tw-bg-opacity: 1;
+    background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+  }
+  .label {
+    padding: 0.5rem;
+  }
+  .label {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  .label {
+    * {
+      display: flex;
+    }
+    * {
+      flex-direction: row;
+    }
+    * {
+      gap: 0.5rem;
+    }
+    .x::before {
+      content: 'x: ';
+    }
+    .y::before {
+      content: 'y: ';
+    }
+    .z::before {
+      content: 'z: ';
+    }
   }
 }
 
@@ -599,8 +668,48 @@ video {
   }
 }
 
+.static {
+  position: static;
+}
+
+.\!absolute {
+  position: absolute !important;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.relative {
+  position: relative;
+}
+
+.top-0 {
+  top: 0px;
+}
+
+.flex {
+  display: flex;
+}
+
 .grid {
   display: grid;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.max-h-\[500px\] {
+  max-height: 500px;
+}
+
+.min-h-full {
+  min-height: 100%;
+}
+
+.w-60 {
+  width: 15rem;
 }
 
 .w-full {
@@ -609,4 +718,35 @@ video {
 
 .resize {
   resize: both;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .md\:w-80 {
+    width: 20rem;
+  }
 }

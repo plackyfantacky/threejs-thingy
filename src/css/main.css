@@ -5,10 +5,38 @@
 @layer base {
 
     #threejs-thingy {
-        @apply w-full h-full;
+        @apply w-full h-full relative;
+
+        .thingy-stats {
+            @apply absolute top-0 left-0;
+
+            & > div {
+                @apply !absolute;
+            }
+        }
+
+        .thingy-labels {
+            @apply absolute top-0 left-0;
+
+            & > div {
+                @apply !absolute;
+            }
+        }
 
         canvas {
             @apply w-full h-full;
+        }
+
+        .label {
+            @apply relative flex flex-col text-sm p-2 bg-white;
+
+            * {
+                @apply flex flex-row gap-2;
+            }
+
+            .x::before { content: 'x: '; }
+            .y::before { content: 'y: '; }
+            .z::before { content: 'z: '; }
         }
     }
 }

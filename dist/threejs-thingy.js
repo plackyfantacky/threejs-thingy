@@ -1489,9 +1489,9 @@
       if (typeof HTMLCanvasElement === "undefined") {
         return image.src;
       }
-      let canvas;
+      let canvas2;
       if (image instanceof HTMLCanvasElement) {
-        canvas = image;
+        canvas2 = image;
       } else {
         if (_canvas === void 0) _canvas = createElementNS("canvas");
         _canvas.width = image.width;
@@ -1502,21 +1502,21 @@
         } else {
           context.drawImage(image, 0, 0, image.width, image.height);
         }
-        canvas = _canvas;
+        canvas2 = _canvas;
       }
-      if (canvas.width > 2048 || canvas.height > 2048) {
+      if (canvas2.width > 2048 || canvas2.height > 2048) {
         console.warn("THREE.ImageUtils.getDataURL: Image converted to jpg for performance reasons", image);
-        return canvas.toDataURL("image/jpeg", 0.6);
+        return canvas2.toDataURL("image/jpeg", 0.6);
       } else {
-        return canvas.toDataURL("image/png");
+        return canvas2.toDataURL("image/png");
       }
     }
     static sRGBToLinear(image) {
       if (typeof HTMLImageElement !== "undefined" && image instanceof HTMLImageElement || typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement || typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap) {
-        const canvas = createElementNS("canvas");
-        canvas.width = image.width;
-        canvas.height = image.height;
-        const context = canvas.getContext("2d");
+        const canvas2 = createElementNS("canvas");
+        canvas2.width = image.width;
+        canvas2.height = image.height;
+        const context = canvas2.getContext("2d");
         context.drawImage(image, 0, 0, image.width, image.height);
         const imageData = context.getImageData(0, 0, image.width, image.height);
         const data = imageData.data;
@@ -1524,7 +1524,7 @@
           data[i] = SRGBToLinear(data[i] / 255) * 255;
         }
         context.putImageData(imageData, 0, 0);
-        return canvas;
+        return canvas2;
       } else if (image.data) {
         const data = image.data.slice(0);
         for (let i = 0; i < data.length; i++) {
@@ -14529,13 +14529,13 @@
           const width = floor(scale * image.width);
           const height = floor(scale * image.height);
           if (_canvas2 === void 0) _canvas2 = createCanvas(width, height);
-          const canvas = needsNewCanvas ? createCanvas(width, height) : _canvas2;
-          canvas.width = width;
-          canvas.height = height;
-          const context = canvas.getContext("2d");
+          const canvas2 = needsNewCanvas ? createCanvas(width, height) : _canvas2;
+          canvas2.width = width;
+          canvas2.height = height;
+          const context = canvas2.getContext("2d");
           context.drawImage(image, 0, 0, width, height);
           console.warn("THREE.WebGLRenderer: Texture has been resized from (" + image.width + "x" + image.height + ") to (" + width + "x" + height + ").");
-          return canvas;
+          return canvas2;
         } else {
           if ("data" in image) {
             console.warn("THREE.WebGLRenderer: Image in DataTexture is too big (" + image.width + "x" + image.height + ").");
@@ -16873,14 +16873,14 @@
     };
   }
   function createCanvasElement() {
-    const canvas = createElementNS("canvas");
-    canvas.style.display = "block";
-    return canvas;
+    const canvas2 = createElementNS("canvas");
+    canvas2.style.display = "block";
+    return canvas2;
   }
   var WebGLRenderer = class {
     constructor(parameters = {}) {
       const {
-        canvas = createCanvasElement(),
+        canvas: canvas2 = createCanvasElement(),
         context = null,
         depth = true,
         stencil = true,
@@ -16904,7 +16904,7 @@
       let currentRenderState = null;
       const renderListStack = [];
       const renderStateStack = [];
-      this.domElement = canvas;
+      this.domElement = canvas2;
       this.debug = {
         /**
          * Enables error checking and reporting when shader programs are being compiled
@@ -16940,8 +16940,8 @@
       let _currentScissorTest = null;
       const _currentClearColor = new Color(0);
       let _currentClearAlpha = 0;
-      let _width = canvas.width;
-      let _height = canvas.height;
+      let _width = canvas2.width;
+      let _height = canvas2.height;
       let _pixelRatio = 1;
       let _opaqueSort = null;
       let _transparentSort = null;
@@ -16963,7 +16963,7 @@
       function getContext(contextNames, contextAttributes) {
         for (let i = 0; i < contextNames.length; i++) {
           const contextName = contextNames[i];
-          const context2 = canvas.getContext(contextName, contextAttributes);
+          const context2 = canvas2.getContext(contextName, contextAttributes);
           if (context2 !== null) return context2;
         }
         return null;
@@ -16979,10 +16979,10 @@
           powerPreference,
           failIfMajorPerformanceCaveat
         };
-        if ("setAttribute" in canvas) canvas.setAttribute("data-engine", `three.js r${REVISION}`);
-        canvas.addEventListener("webglcontextlost", onContextLost, false);
-        canvas.addEventListener("webglcontextrestored", onContextRestore, false);
-        canvas.addEventListener("webglcontextcreationerror", onContextCreationError, false);
+        if ("setAttribute" in canvas2) canvas2.setAttribute("data-engine", `three.js r${REVISION}`);
+        canvas2.addEventListener("webglcontextlost", onContextLost, false);
+        canvas2.addEventListener("webglcontextrestored", onContextRestore, false);
+        canvas2.addEventListener("webglcontextcreationerror", onContextCreationError, false);
         if (_gl === null) {
           const contextNames = ["webgl2", "webgl", "experimental-webgl"];
           if (_this.isWebGL1Renderer === true) {
@@ -17084,11 +17084,11 @@
         }
         _width = width;
         _height = height;
-        canvas.width = Math.floor(width * _pixelRatio);
-        canvas.height = Math.floor(height * _pixelRatio);
+        canvas2.width = Math.floor(width * _pixelRatio);
+        canvas2.height = Math.floor(height * _pixelRatio);
         if (updateStyle === true) {
-          canvas.style.width = width + "px";
-          canvas.style.height = height + "px";
+          canvas2.style.width = width + "px";
+          canvas2.style.height = height + "px";
         }
         this.setViewport(0, 0, width, height);
       };
@@ -17099,8 +17099,8 @@
         _width = width;
         _height = height;
         _pixelRatio = pixelRatio;
-        canvas.width = Math.floor(width * pixelRatio);
-        canvas.height = Math.floor(height * pixelRatio);
+        canvas2.width = Math.floor(width * pixelRatio);
+        canvas2.height = Math.floor(height * pixelRatio);
         this.setViewport(0, 0, width, height);
       };
       this.getCurrentViewport = function(target) {
@@ -17199,9 +17199,9 @@
         this.clear(false, false, true);
       };
       this.dispose = function() {
-        canvas.removeEventListener("webglcontextlost", onContextLost, false);
-        canvas.removeEventListener("webglcontextrestored", onContextRestore, false);
-        canvas.removeEventListener("webglcontextcreationerror", onContextCreationError, false);
+        canvas2.removeEventListener("webglcontextlost", onContextLost, false);
+        canvas2.removeEventListener("webglcontextrestored", onContextRestore, false);
+        canvas2.removeEventListener("webglcontextcreationerror", onContextCreationError, false);
         renderLists.dispose();
         renderStates.dispose();
         properties.dispose();
@@ -19503,8 +19503,8 @@
     }
   };
   var CanvasTexture = class extends Texture {
-    constructor(canvas, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy) {
-      super(canvas, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy);
+    constructor(canvas2, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy) {
+      super(canvas2, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy);
       this.isCanvasTexture = true;
       this.needsUpdate = true;
     }
@@ -27600,8 +27600,8 @@
     }
   };
   var AnimationAction = class {
-    constructor(mixer, clip, localRoot = null, blendMode = clip.blendMode) {
-      this._mixer = mixer;
+    constructor(mixer2, clip, localRoot = null, blendMode = clip.blendMode) {
+      this._mixer = mixer2;
       this._clip = clip;
       this._localRoot = localRoot;
       this.blendMode = blendMode;
@@ -27736,10 +27736,10 @@
       return this.warp(this._effectiveTimeScale, 0, duration);
     }
     warp(startTimeScale, endTimeScale, duration) {
-      const mixer = this._mixer, now2 = mixer.time, timeScale = this.timeScale;
+      const mixer2 = this._mixer, now2 = mixer2.time, timeScale = this.timeScale;
       let interpolant = this._timeScaleInterpolant;
       if (interpolant === null) {
-        interpolant = mixer._lendControlInterpolant();
+        interpolant = mixer2._lendControlInterpolant();
         this._timeScaleInterpolant = interpolant;
       }
       const times = interpolant.parameterPositions, values = interpolant.sampleValues;
@@ -27945,10 +27945,10 @@
       }
     }
     _scheduleFading(duration, weightNow, weightThen) {
-      const mixer = this._mixer, now2 = mixer.time;
+      const mixer2 = this._mixer, now2 = mixer2.time;
       let interpolant = this._weightInterpolant;
       if (interpolant === null) {
-        interpolant = mixer._lendControlInterpolant();
+        interpolant = mixer2._lendControlInterpolant();
         this._weightInterpolant = interpolant;
       }
       const times = interpolant.parameterPositions, values = interpolant.sampleValues;
@@ -32550,6 +32550,122 @@
     return material;
   }
 
+  // node_modules/three/examples/jsm/renderers/CSS2DRenderer.js
+  var CSS2DObject = class extends Object3D {
+    constructor(element = document.createElement("div")) {
+      super();
+      this.isCSS2DObject = true;
+      this.element = element;
+      this.element.style.position = "absolute";
+      this.element.style.userSelect = "none";
+      this.element.setAttribute("draggable", false);
+      this.center = new Vector2(0.5, 0.5);
+      this.addEventListener("removed", function() {
+        this.traverse(function(object) {
+          if (object.element instanceof Element && object.element.parentNode !== null) {
+            object.element.parentNode.removeChild(object.element);
+          }
+        });
+      });
+    }
+    copy(source, recursive) {
+      super.copy(source, recursive);
+      this.element = source.element.cloneNode(true);
+      this.center = source.center;
+      return this;
+    }
+  };
+  var _vector4 = new Vector3();
+  var _viewMatrix = new Matrix4();
+  var _viewProjectionMatrix = new Matrix4();
+  var _a = new Vector3();
+  var _b = new Vector3();
+  var CSS2DRenderer = class {
+    constructor(parameters = {}) {
+      const _this = this;
+      let _width, _height;
+      let _widthHalf, _heightHalf;
+      const cache = {
+        objects: /* @__PURE__ */ new WeakMap()
+      };
+      const domElement = parameters.element !== void 0 ? parameters.element : document.createElement("div");
+      domElement.style.overflow = "hidden";
+      this.domElement = domElement;
+      this.getSize = function() {
+        return {
+          width: _width,
+          height: _height
+        };
+      };
+      this.render = function(scene2, camera2) {
+        if (scene2.matrixWorldAutoUpdate === true) scene2.updateMatrixWorld();
+        if (camera2.parent === null && camera2.matrixWorldAutoUpdate === true) camera2.updateMatrixWorld();
+        _viewMatrix.copy(camera2.matrixWorldInverse);
+        _viewProjectionMatrix.multiplyMatrices(camera2.projectionMatrix, _viewMatrix);
+        renderObject(scene2, scene2, camera2);
+        zOrder2(scene2);
+      };
+      this.setSize = function(width, height) {
+        _width = width;
+        _height = height;
+        _widthHalf = _width / 2;
+        _heightHalf = _height / 2;
+        domElement.style.width = width + "px";
+        domElement.style.height = height + "px";
+      };
+      function renderObject(object, scene2, camera2) {
+        if (object.isCSS2DObject) {
+          _vector4.setFromMatrixPosition(object.matrixWorld);
+          _vector4.applyMatrix4(_viewProjectionMatrix);
+          const visible = object.visible === true && (_vector4.z >= -1 && _vector4.z <= 1) && object.layers.test(camera2.layers) === true;
+          object.element.style.display = visible === true ? "" : "none";
+          if (visible === true) {
+            object.onBeforeRender(_this, scene2, camera2);
+            const element = object.element;
+            element.style.transform = "translate(" + -100 * object.center.x + "%," + -100 * object.center.y + "%)translate(" + (_vector4.x * _widthHalf + _widthHalf) + "px," + (-_vector4.y * _heightHalf + _heightHalf) + "px)";
+            if (element.parentNode !== domElement) {
+              domElement.appendChild(element);
+            }
+            object.onAfterRender(_this, scene2, camera2);
+          }
+          const objectData = {
+            distanceToCameraSquared: getDistanceToSquared(camera2, object)
+          };
+          cache.objects.set(object, objectData);
+        }
+        for (let i = 0, l = object.children.length; i < l; i++) {
+          renderObject(object.children[i], scene2, camera2);
+        }
+      }
+      function getDistanceToSquared(object1, object2) {
+        _a.setFromMatrixPosition(object1.matrixWorld);
+        _b.setFromMatrixPosition(object2.matrixWorld);
+        return _a.distanceToSquared(_b);
+      }
+      function filterAndFlatten(scene2) {
+        const result = [];
+        scene2.traverse(function(object) {
+          if (object.isCSS2DObject) result.push(object);
+        });
+        return result;
+      }
+      function zOrder2(scene2) {
+        const sorted = filterAndFlatten(scene2).sort(function(a, b) {
+          if (a.renderOrder !== b.renderOrder) {
+            return b.renderOrder - a.renderOrder;
+          }
+          const distanceA = cache.objects.get(a).distanceToCameraSquared;
+          const distanceB = cache.objects.get(b).distanceToCameraSquared;
+          return distanceA - distanceB;
+        });
+        const zMax = sorted.length;
+        for (let i = 0, l = sorted.length; i < l; i++) {
+          sorted[i].element.style.zIndex = zMax - i;
+        }
+      }
+    }
+  };
+
   // node_modules/@plackyfantacky/three.infinitegridhelper/InfiniteGridHelper.js
   var InfiniteGridHelper = class extends Mesh {
     constructor(size1, size2, color, distance, axes = "xzy") {
@@ -32856,10 +32972,10 @@
       }
     }
   };
-  var _a;
+  var _a2;
   var VERSION = "2.8.5";
   var TOUCH_DOLLY_FACTOR = 1 / 8;
-  var isMac = /Mac/.test((_a = globalThis === null || globalThis === void 0 ? void 0 : globalThis.navigator) === null || _a === void 0 ? void 0 : _a.platform);
+  var isMac = /Mac/.test((_a2 = globalThis === null || globalThis === void 0 ? void 0 : globalThis.navigator) === null || _a2 === void 0 ? void 0 : _a2.platform);
   var THREE;
   var _ORIGIN;
   var _AXIS_Y;
@@ -33447,13 +33563,13 @@
         startDragging();
       };
       this.unlockPointer = () => {
-        var _a2, _b, _c;
+        var _a3, _b2, _c;
         if (this._lockedPointer !== null) {
           this._disposePointer(this._lockedPointer);
           this._lockedPointer = null;
         }
-        (_a2 = this._domElement) === null || _a2 === void 0 ? void 0 : _a2.ownerDocument.exitPointerLock();
-        (_b = this._domElement) === null || _b === void 0 ? void 0 : _b.ownerDocument.removeEventListener("pointerlockchange", onPointerLockChange);
+        (_a3 = this._domElement) === null || _a3 === void 0 ? void 0 : _a3.ownerDocument.exitPointerLock();
+        (_b2 = this._domElement) === null || _b2 === void 0 ? void 0 : _b2.ownerDocument.removeEventListener("pointerlockchange", onPointerLockChange);
         (_c = this._domElement) === null || _c === void 0 ? void 0 : _c.ownerDocument.removeEventListener("pointerlockerror", onPointerLockError);
         this.cancel();
       };
@@ -34779,63 +34895,73 @@
   // src/js/main.js
   CameraControls.install({ THREE: three_module_exports });
   var container;
+  var canvas;
+  var labels;
   var camera;
   var scene;
+  var mixer;
+  var labelRenderer;
   var renderer;
   var cameraDolly;
   var cameraTarget;
   var clock = new Clock();
+  var shiftKeyState = false;
   container = document.getElementById("threejs-thingy");
   if (container) {
+    canvas = document.getElementById("thingy-canvas");
+    labels = container.querySelector(".thingy-labels");
     init().catch((error) => console.error(error));
   }
   async function init() {
     scene = new Scene();
-    renderer = new WebGLRenderer({ antialias: true });
+    renderer = new WebGLRenderer({ antialias: true, canvas });
+    labelRenderer = new CSS2DRenderer();
     let gltfData = await loadModel(wp_vars.plugin_url + "3d_assets/scene-main.glb");
     if (gltfData) {
       scene.add(gltfData.scene);
       cameraDolly = gltfData.scene.getObjectByName("cameraDolly");
       cameraTarget = gltfData.scene.getObjectByName("cameraTarget");
       pixelType = gltfData.scene.getObjectByName("pixeltype");
+      cameraTarget.layers.set(2);
+      cameraDolly.layers.set(2);
+      pixelType.layers.set(2);
       camera = new PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1e3);
-      camera.zoom = 0.75;
-      const cameraControls = new CameraControls(camera, renderer.domElement);
-      cameraControls.setLookAt(
-        cameraDolly.position.z,
+      const cameraControls2 = new CameraControls(camera, labelRenderer.domElement);
+      cameraControls2.setLookAt(
+        cameraDolly.position.x,
         cameraDolly.position.y,
-        cameraDolly.position.x * -1,
+        cameraDolly.position.z,
         cameraTarget.position.x,
         cameraTarget.position.y,
         cameraTarget.position.z,
         true
       );
-      cameraControls.dollyTo(5.5, true);
-      cameraControls.setFocalOffset(-2, 0, 0);
-      let newEmpty3 = new Object3D();
-      newEmpty3.position.set(cameraDolly.position.z, cameraDolly.position.y, cameraDolly.position.x * -1);
-      scene.add(newEmpty3);
+      cameraControls2.dollyTo(7, true);
+      cameraControls2.setFocalOffset(-2, 0, 0);
       const pmremGenerator = new PMREMGenerator(renderer);
       scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.04).texture;
       renderer.setPixelRatio(window.devicePixelRatio);
       container.appendChild(renderer.domElement);
+      makePositionLabel(cameraTarget);
+      const axesHelper = new AxesHelper(5);
+      scene.add(axesHelper);
+      axesHelper.layers.set(1);
+      makePositionLabel(cameraDolly);
       scene.background = new Color("#ffca8a");
       let grid = new InfiniteGridHelper(0.1, 1, new Color("white"), 100, "xzy");
       scene.add(grid);
       let directionalLight = new DirectionalLight("white", 3, 100);
       directionalLight.castShadow = true;
-      scene.add(new AmbientLight(4210752, 12));
       scene.add(directionalLight);
-      globalThis.cameraControls = cameraControls;
+      directionalLight.layers.set(2);
+      let ambientLight = new AmbientLight(4210752, 12);
+      scene.add(ambientLight);
+      ambientLight.layers.set(2);
+      mixer = new AnimationMixer(gltfData.scene);
+      renderer.setAnimationLoop(animate);
+      globalThis.cameraControls = cameraControls2;
       render();
-      (function animate() {
-        const delta = clock.getDelta();
-        const updated = cameraControls.update(delta);
-        requestAnimationFrame(animate);
-        if (updated) {
-          render();
-        }
-      })();
+      globalThis.scene = scene;
     }
   }
   function loadModel(url) {
@@ -34847,24 +34973,73 @@
   }
   function render() {
     if (resizeRendererToDisplaySize(renderer)) {
-      const canvas = renderer.domElement;
-      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      const canvas2 = renderer.domElement;
+      camera.aspect = canvas2.clientWidth / canvas2.clientHeight;
       camera.updateProjectionMatrix();
     }
     renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
+  }
+  function animate() {
+    const delta = clock.getDelta();
+    const updated = cameraControls.update(delta);
+    mixer.update(delta);
+    render();
   }
   function resizeRendererToDisplaySize(renderer2) {
-    const canvas = renderer2.domElement;
+    const canvas2 = renderer2.domElement;
     const pixelRatio = window.devicePixelRatio;
-    const width = Math.floor(canvas.clientWidth * pixelRatio);
-    const height = Math.floor(canvas.clientHeight * pixelRatio);
-    const needResize = canvas.width !== width || canvas.height !== height;
+    const width = Math.floor(canvas2.clientWidth * pixelRatio);
+    const height = Math.floor(canvas2.clientHeight * pixelRatio);
+    const needResize = canvas2.width !== width || canvas2.height !== height;
     if (needResize) {
       renderer2.setSize(width, height, false);
+      labelRenderer.setSize(width, height);
+      labelRenderer.domElement.style.position = "absolute";
+      labelRenderer.domElement.style.top = "0px";
+      container.appendChild(labelRenderer.domElement);
     }
     return needResize;
   }
+  function makePositionLabel(obj) {
+    const tempDiv = document.getElementById("thingy-label-template").cloneNode(true);
+    let newDiv = tempDiv.content.firstElementChild;
+    newDiv.querySelector(".x").textContent = obj.position.x;
+    newDiv.querySelector(".y").textContent = obj.position.y;
+    newDiv.querySelector(".z").textContent = obj.position.z;
+    const newLabel = new CSS2DObject(newDiv);
+    newLabel.position.set(0, 0.2, 0);
+    newLabel.center.set(0, 1);
+    newLabel.layers.set(1);
+    obj.add(newLabel);
+  }
   window.addEventListener("resize", render);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Shift") {
+      shiftKeyState = true;
+      updateConfig();
+      console.log(globalThis.scene.children);
+    }
+  });
+  document.addEventListener("keyup", (event) => {
+    if (event.key === "Shift") {
+      shiftKeyState = false;
+      updateConfig();
+    }
+  });
+  var updateConfig = () => {
+    if (shiftKeyState) {
+      cameraControls.mouseButtons.left = CameraControls.ACTION.DOLLY;
+    } else {
+      cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;
+    }
+  };
+  var thingyControls = document.getElementById("thingy-overlays");
+  if (thingyControls) {
+    thingyControls.addEventListener("click", (event) => {
+      camera.layers.toggle(1);
+    });
+  }
 })();
 /*! Bundled license information:
 
