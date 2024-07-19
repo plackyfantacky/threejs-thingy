@@ -16,10 +16,13 @@ CameraControls.install( {THREE: THREE});
 
 let container, canvas, labels, camera, scene, mixer;
 let labelRenderer, renderer;
-let cameraDolly, cameraTarget;
+let cameraDolly, cameraTarget, cameraControls;
 let clock = new THREE.Clock();
 
-let shiftKeyState = false;
+let keyState = {
+    shiftKeyLeft: false,
+    shiftKeyRight: false
+};
 
 
 container = document.getElementById('threejs-thingy');
@@ -34,6 +37,7 @@ async function init() {
     scene = new THREE.Scene();
     renderer = new THREE.WebGLRenderer({antialias: true, canvas});
     labelRenderer = new CSS2DRenderer();
+    container.appendChild(renderer.domElement);
 
     let gltfData = await loadModel(wp_vars.plugin_url + '3d_assets/scene-main.glb');
 
@@ -55,7 +59,7 @@ async function init() {
         camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000);
         //camera.zoom = 0.75;
     
-        const cameraControls = new CameraControls(camera, labelRenderer.domElement);
+        cameraControls = new CameraControls(camera, labelRenderer.domElement);
         cameraControls.setLookAt(
             cameraDolly.position.x,
             cameraDolly.position.y,
@@ -66,7 +70,8 @@ async function init() {
             true
         );
         cameraControls.dollyTo(7, true);
-        cameraControls.setFocalOffset(-2, 0, 0); //this works when the scene is static
+        updateSceneOffset();
+        //cameraControls.setFocalOffset(-2, 0, 0); //this works when the scene is static
 
         // let newEmpty3 = new THREE.Object3D();
         // newEmpty3.position.set(cameraDolly.position.z, cameraDolly.position.y, cameraDolly.position.x * -1);
@@ -90,7 +95,7 @@ async function init() {
         //addTransformControls(cameraDolly, "cameraDollyTransformer");
         makePositionLabel(cameraDolly);
         
-
+        
         // emptyEmpty3 = new TransformControls(camera, renderer.domElement);
         // emptyEmpty3.addEventListener('change',  render);
         // emptyEmpty3.addEventListener('dragging-changed', function (event) { cameraControls.enabled = ! event.value; });
@@ -122,6 +127,7 @@ async function init() {
         renderer.setAnimationLoop(animate);
 
         globalThis.cameraControls = cameraControls;
+        globalThis.renderer = renderer;
 
         render();
 
@@ -147,27 +153,12 @@ function render() {
     labelRenderer.render(scene, camera)
 }
 
-function animate() {
-    const delta = clock.getDelta();
-    const updated = cameraControls.update(delta);
-    mixer.update(delta);
-
-    //requestAnimationFrame(animate)
-
-    render();
-}
-
-function animateCamera() {
-    const delta = clock.getDelta();
-    mixer.update(delta);
-    render();
-}
-
 function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement
-    const pixelRatio = window.devicePixelRatio
-    const width = Math.floor(canvas.clientWidth * pixelRatio)
-    const height = Math.floor(canvas.clientHeight * pixelRatio)
+
+    const width = Math.floor(canvas.closest('.threejs-scene').clientWidth * window.devicePixelRatio)
+    const height = Math.floor(canvas.closest('.threejs-scene').clientHeight * window.devicePixelRatio)
+
     const needResize = canvas.width !== width || canvas.height !== height
     if (needResize) {
         renderer.setSize(width, height, false)
@@ -179,6 +170,33 @@ function resizeRendererToDisplaySize(renderer) {
     return needResize
 }
 
+function updateSceneOffset() {
+    const canvas = renderer.domElement
+    const pixelRatio = window.devicePixelRatio
+    const width = Math.floor(canvas.closest('.threejs-scene').clientWidth * pixelRatio)
+    
+    if(width > 1024) {
+        cameraControls.setFocalOffset(-1.5, 0, 0);
+    } else {
+        cameraControls.setFocalOffset(0, 0, 0);
+    }
+
+    render()
+}
+
+function animate() {
+    const delta = clock.getDelta();
+    const updated = cameraControls.update(delta);
+    mixer.update(delta);
+    render();
+}
+
+// function animateCamera() {
+//     const delta = clock.getDelta();
+//     mixer.update(delta);
+//     render();
+// }
+
 function makePositionLabel(obj) {
     const tempDiv = document.getElementById('thingy-label-template').cloneNode(true);
     let newDiv = tempDiv.content.firstElementChild;
@@ -186,10 +204,8 @@ function makePositionLabel(obj) {
     newDiv.querySelector('.x').textContent = obj.position.x;
     newDiv.querySelector('.y').textContent = obj.position.y;
     newDiv.querySelector('.z').textContent = obj.position.z;
-    //labels.appendChild(newDiv);
 
     const newLabel = new CSS2DObject(newDiv);
-    //newLabel.position.set(obj.position.z, obj.position.y, obj.position.x * -1);
     newLabel.position.set(0, 0.2, 0);
     newLabel.center.set(0, 1);
     newLabel.layers.set(1);
@@ -206,24 +222,34 @@ function addTransformControls(obj, name = "transformControls") {
 }
 
 window.addEventListener('resize', render);
+window.addEventListener('resize', updateSceneOffset);
 
 document.addEventListener( 'keydown', ( event ) => {
-    if(event.key === 'Shift') {
-        shiftKeyState = true;
-        updateConfig();
-        console.log(globalThis.scene.children)
-    }
+    if(event.code === 'ShiftLeft') { keyState.shiftKeyLeft = true; }
+    if(event.code === 'ShiftRight') { keyState.shiftKeyRight = true; }
+    updateKeyConfig();
 });
 
 document.addEventListener( 'keyup', ( event ) => {
-    if(event.key === 'Shift') {
-        shiftKeyState = false;
-        updateConfig();
+    if(event.code === 'ShiftLeft') { keyState.shiftKeyLeft = false; }
+    if(event.code === 'ShiftRight') { keyState.shiftKeyRight = false; }    
+    updateKeyConfig();
+});
+
+container.addEventListener('mouseenter', (event) => {
+    if(cameraControls) {
+        cameraControls.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
     }
 });
 
-const updateConfig = () => {
-    if(shiftKeyState) {
+container.addEventListener('mouseleave', (event) => {
+    if(cameraControls) {
+        cameraControls.mouseButtons.wheel = CameraControls.ACTION.NONE;
+    }
+});
+
+const updateKeyConfig = () => {
+    if(keyState.shiftKeyLeft || keyState.shiftKeyRight) {
         cameraControls.mouseButtons.left = CameraControls.ACTION.DOLLY;
     } else {
         cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;

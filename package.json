@@ -13,9 +13,7 @@
 		"build:css": "tailwindcss src/css/main.css -o dist/threejs-thingy.css",
 		"watch:js": "node _esbuild/watch.config.mjs",
 		"watch:css": "tailwindcss src/css/main.css -o dist/threejs-thingy.css --watch",
-		"watch": "concurrently \"npm run watch:js\" \"npm run watch:css\"",
-		"sync": "browser-sync start --proxy \"$npm_config_hostname\"  --host \"$npm_config_hostname\" --no-inject-changes --files=\"../\"",
-		"watch:sync": "concurrently \"npm run watch\" \"npm run sync\""
+		"watch": "concurrently \"npm run watch:js\" \"npm run watch:css\""
 	},
 	"license": "UNLICENSED",
 	"config": {
@@ -30,8 +28,8 @@
 	},
 	"devDependencies": {
 		"autoprefixer": "^10.4.19",
-		"browser-sync": "^3.0.2",
 		"concurrently": "^8.2.2",
+		"daisyui": "^4.12.10",
 		"esbuild": "^0.23.0",
 		"postcss": "^8.4.39",
 		"postcss-import": "^16.1.0",
