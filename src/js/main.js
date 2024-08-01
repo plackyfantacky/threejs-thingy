@@ -30,235 +30,238 @@ if(container) {
     canvas = document.getElementById('thingy-canvas');
     labels = container.querySelector('.thingy-labels');
     init().catch(error => console.error(error));
-}
 
-async function init() {
-	
-    scene = new THREE.Scene();
-    renderer = new THREE.WebGLRenderer({antialias: true, canvas});
-    labelRenderer = new CSS2DRenderer();
-    container.appendChild(renderer.domElement);
-
-    let gltfData = await loadModel(wp_vars.plugin_url + '3d_assets/scene-main.glb');
-
-    if(gltfData) {
+    async function init() {
         
-        scene.add(gltfData.scene);
+        scene = new THREE.Scene();
+        renderer = new THREE.WebGLRenderer({antialias: true, canvas});
+        labelRenderer = new CSS2DRenderer();
+        container.appendChild(renderer.domElement);
+
+        let gltfData = await loadModel(wp_vars.plugin_url + '3d_assets/scene-main.glb');
+
+        if(gltfData) {
+            
+            scene.add(gltfData.scene);
+            
+            cameraDolly = gltfData.scene.getObjectByName('cameraDolly');
+            cameraTarget = gltfData.scene.getObjectByName('cameraTarget');
+            pixelType = gltfData.scene.getObjectByName('pixeltype');
+
+            cameraTarget.layers.set(2);
+            cameraDolly.layers.set(2);
+            pixelType.layers.set(2);
+
+            // const stats = new Stats();
+            // container.querySelector('.thingy-stats').appendChild(stats.dom);
+
+            camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000);
+            //camera.zoom = 0.75;
         
-        cameraDolly = gltfData.scene.getObjectByName('cameraDolly');
-        cameraTarget = gltfData.scene.getObjectByName('cameraTarget');
-        pixelType = gltfData.scene.getObjectByName('pixeltype');
+            cameraControls = new CameraControls(camera, labelRenderer.domElement);
+            cameraControls.setLookAt(
+                cameraDolly.position.x,
+                cameraDolly.position.y,
+                cameraDolly.position.z,
+                cameraTarget.position.x,
+                cameraTarget.position.y,
+                cameraTarget.position.z,
+                true
+            );
+            cameraControls.dollyTo(7, true);
+            updateSceneOffset();
+            //cameraControls.setFocalOffset(-2, 0, 0); //this works when the scene is static
 
-        cameraTarget.layers.set(2);
-        cameraDolly.layers.set(2);
-        pixelType.layers.set(2);
+            // let newEmpty3 = new THREE.Object3D();
+            // newEmpty3.position.set(cameraDolly.position.z, cameraDolly.position.y, cameraDolly.position.x * -1);
+            // scene.add(newEmpty3);
 
-        // const stats = new Stats();
-		// container.querySelector('.thingy-stats').appendChild(stats.dom);
+            //adding this made me go 'WOW' when I saw the lighting
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.04).texture;
 
-        camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000);
-        //camera.zoom = 0.75;
-    
-        cameraControls = new CameraControls(camera, labelRenderer.domElement);
-        cameraControls.setLookAt(
-            cameraDolly.position.x,
-            cameraDolly.position.y,
-            cameraDolly.position.z,
-            cameraTarget.position.x,
-            cameraTarget.position.y,
-            cameraTarget.position.z,
-            true
-        );
-        cameraControls.dollyTo(7, true);
-        updateSceneOffset();
-        //cameraControls.setFocalOffset(-2, 0, 0); //this works when the scene is static
+            //renderer settings
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
 
-        // let newEmpty3 = new THREE.Object3D();
-        // newEmpty3.position.set(cameraDolly.position.z, cameraDolly.position.y, cameraDolly.position.x * -1);
-        // scene.add(newEmpty3);
+            //addTransformControls(cameraTarget, "cameraTargetTransformer");
+            makePositionLabel(cameraTarget);
+            
+            const axesHelper = new THREE.AxesHelper(5);
+            scene.add(axesHelper);
+            axesHelper.layers.set(1);
 
-        //adding this made me go 'WOW' when I saw the lighting
-        const pmremGenerator = new THREE.PMREMGenerator(renderer);
-        scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+            //addTransformControls(cameraDolly, "cameraDollyTransformer");
+            makePositionLabel(cameraDolly);
+            
+            
+            // emptyEmpty3 = new TransformControls(camera, renderer.domElement);
+            // emptyEmpty3.addEventListener('change',  render);
+            // emptyEmpty3.addEventListener('dragging-changed', function (event) { cameraControls.enabled = ! event.value; });
+            // scene.add(emptyEmpty3);
+            // emptyEmpty3.attach(newEmpty3);
+            //let camera
 
-        //renderer settings
-	    renderer.setPixelRatio(window.devicePixelRatio);
-	    container.appendChild(renderer.domElement);
-
-        //addTransformControls(cameraTarget, "cameraTargetTransformer");
-        makePositionLabel(cameraTarget);
+            //initialise the background
+            scene.background = new THREE.Color('#ffca8a');
+            let grid = new InfiniteGridHelper(0.1, 1, new THREE.Color('white'), 100, 'xzy');
+            scene.add(grid);
         
-        const axesHelper = new THREE.AxesHelper(5);
-        scene.add(axesHelper);
-        axesHelper.layers.set(1);
+            //add some lighting
+            let directionalLight = new THREE.DirectionalLight('white', 3, 100);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            directionalLight.layers.set(2);
 
-        //addTransformControls(cameraDolly, "cameraDollyTransformer");
-        makePositionLabel(cameraDolly);
+            let ambientLight = new THREE.AmbientLight(0x404040, 12);
+            scene.add(ambientLight);
+            ambientLight.layers.set(2);
+
+            mixer = new THREE.AnimationMixer(gltfData.scene)
         
-        
-        // emptyEmpty3 = new TransformControls(camera, renderer.domElement);
-        // emptyEmpty3.addEventListener('change',  render);
-        // emptyEmpty3.addEventListener('dragging-changed', function (event) { cameraControls.enabled = ! event.value; });
-        // scene.add(emptyEmpty3);
-        // emptyEmpty3.attach(newEmpty3);
-        //let camera
+            //this plays the animation for the cameraTarget
+            //mixer.clipAction(gltfData.animations[0]).play()
+            //mixer.clipAction(gltfData.animations[1]).play()
+            
+            renderer.setAnimationLoop(animate);
 
-        //initialise the background
-        scene.background = new THREE.Color('#ffca8a');
-        let grid = new InfiniteGridHelper(0.1, 1, new THREE.Color('white'), 100, 'xzy');
-        scene.add(grid);
-    
-        //add some lighting
-        let directionalLight = new THREE.DirectionalLight('white', 3, 100);
-        directionalLight.castShadow = true;
-        scene.add(directionalLight);
-        directionalLight.layers.set(2);
+            globalThis.cameraControls = cameraControls;
+            globalThis.renderer = renderer;
 
-        let ambientLight = new THREE.AmbientLight(0x404040, 12);
-        scene.add(ambientLight);
-        ambientLight.layers.set(2);
+            render();
 
-        mixer = new THREE.AnimationMixer(gltfData.scene)
-	
-        //this plays the animation for the cameraTarget
-        //mixer.clipAction(gltfData.animations[0]).play()
-        //mixer.clipAction(gltfData.animations[1]).play()
-        
-        renderer.setAnimationLoop(animate);
-
-        globalThis.cameraControls = cameraControls;
-        globalThis.renderer = renderer;
-
-        render();
-
-        globalThis.scene = scene;
+            globalThis.scene = scene;
+        }
     }
-}
 
-function loadModel(url) {
-    const loader = new GLTFLoader();
-    const dracoLoader = new DRACOLoader();
-	dracoLoader.setDecoderPath(wp_vars.plugin_url + 'decoder/');
-	loader.setDRACOLoader(dracoLoader);
-    return loader.loadAsync(url);
-}
+    function loadModel(url) {
+        const loader = new GLTFLoader();
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath(wp_vars.plugin_url + 'decoder/');
+        loader.setDRACOLoader(dracoLoader);
+        return loader.loadAsync(url);
+    }
 
-function render() {
-    if(resizeRendererToDisplaySize(renderer)) {
+    function render() {
+        if(resizeRendererToDisplaySize(renderer)) {
+            const canvas = renderer.domElement
+            camera.aspect = canvas.clientWidth / canvas.clientHeight
+            camera.updateProjectionMatrix()
+        }
+        renderer.render(scene, camera)
+        labelRenderer.render(scene, camera)
+    }
+
+    function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement
-        camera.aspect = canvas.clientWidth / canvas.clientHeight
-        camera.updateProjectionMatrix()
-    }
-    renderer.render(scene, camera)
-    labelRenderer.render(scene, camera)
-}
 
-function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement
+        const width = Math.floor(canvas.closest('.threejs-scene').clientWidth * window.devicePixelRatio)
+        const height = Math.floor(canvas.closest('.threejs-scene').clientHeight * window.devicePixelRatio)
 
-    const width = Math.floor(canvas.closest('.threejs-scene').clientWidth * window.devicePixelRatio)
-    const height = Math.floor(canvas.closest('.threejs-scene').clientHeight * window.devicePixelRatio)
-
-    const needResize = canvas.width !== width || canvas.height !== height
-    if (needResize) {
-        renderer.setSize(width, height, false)
-        labelRenderer.setSize(width, height)
-        labelRenderer.domElement.style.position = 'absolute';
-        labelRenderer.domElement.style.top = '0px';
-        container.appendChild(labelRenderer.domElement);
-    }
-    return needResize
-}
-
-function updateSceneOffset() {
-    const canvas = renderer.domElement
-    const pixelRatio = window.devicePixelRatio
-    const width = Math.floor(canvas.closest('.threejs-scene').clientWidth * pixelRatio)
-    
-    if(width > 1024) {
-        cameraControls.setFocalOffset(-1.5, 0, 0);
-    } else {
-        cameraControls.setFocalOffset(0, 0, 0);
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+            renderer.setSize(width, height, false)
+            labelRenderer.setSize(width, height)
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0px';
+            container.appendChild(labelRenderer.domElement);
+        }
+        return needResize
     }
 
-    render()
-}
+    function updateSceneOffset() {
+        const canvas = renderer.domElement
+        const pixelRatio = window.devicePixelRatio
+        const width = Math.floor(canvas.closest('.threejs-scene').clientWidth * pixelRatio)
+        
+        if(width > 1024) {
+            cameraControls.setFocalOffset(-1.5, 0, 0);
+        } else {
+            cameraControls.setFocalOffset(0, 0, 0);
+        }
 
-function animate() {
-    const delta = clock.getDelta();
-    const updated = cameraControls.update(delta);
-    mixer.update(delta);
-    render();
-}
-
-// function animateCamera() {
-//     const delta = clock.getDelta();
-//     mixer.update(delta);
-//     render();
-// }
-
-function makePositionLabel(obj) {
-    const tempDiv = document.getElementById('thingy-label-template').cloneNode(true);
-    let newDiv = tempDiv.content.firstElementChild;
-    
-    newDiv.querySelector('.x').textContent = obj.position.x;
-    newDiv.querySelector('.y').textContent = obj.position.y;
-    newDiv.querySelector('.z').textContent = obj.position.z;
-
-    const newLabel = new CSS2DObject(newDiv);
-    newLabel.position.set(0, 0.2, 0);
-    newLabel.center.set(0, 1);
-    newLabel.layers.set(1);
-    obj.add(newLabel);
-}
-
-function addTransformControls(obj, name = "transformControls") {
-    let transformControls = new TransformControls(camera, renderer.domElement);
-    transformControls.addEventListener('change', render);
-    transformControls.attach(obj);
-    transformControls.name = name;
-    transformControls.layers.set(1);
-    scene.add(transformControls);
-}
-
-window.addEventListener('resize', render);
-window.addEventListener('resize', updateSceneOffset);
-
-document.addEventListener( 'keydown', ( event ) => {
-    if(event.code === 'ShiftLeft') { keyState.shiftKeyLeft = true; }
-    if(event.code === 'ShiftRight') { keyState.shiftKeyRight = true; }
-    updateKeyConfig();
-});
-
-document.addEventListener( 'keyup', ( event ) => {
-    if(event.code === 'ShiftLeft') { keyState.shiftKeyLeft = false; }
-    if(event.code === 'ShiftRight') { keyState.shiftKeyRight = false; }    
-    updateKeyConfig();
-});
-
-container.addEventListener('mouseenter', (event) => {
-    if(cameraControls) {
-        cameraControls.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
+        render()
     }
-});
 
-container.addEventListener('mouseleave', (event) => {
-    if(cameraControls) {
-        cameraControls.mouseButtons.wheel = CameraControls.ACTION.NONE;
+    function animate() {
+        const delta = clock.getDelta();
+        const updated = cameraControls.update(delta);
+        mixer.update(delta);
+        render();
     }
-});
 
-const updateKeyConfig = () => {
-    if(keyState.shiftKeyLeft || keyState.shiftKeyRight) {
-        cameraControls.mouseButtons.left = CameraControls.ACTION.DOLLY;
-    } else {
-        cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;
+    // function animateCamera() {
+    //     const delta = clock.getDelta();
+    //     mixer.update(delta);
+    //     render();
+    // }
+
+    function makePositionLabel(obj) {
+        const tempDiv = document.getElementById('thingy-label-template').cloneNode(true);
+        let newDiv = tempDiv.content.firstElementChild;
+        
+        newDiv.querySelector('.x').textContent = obj.position.x;
+        newDiv.querySelector('.y').textContent = obj.position.y;
+        newDiv.querySelector('.z').textContent = obj.position.z;
+
+        const newLabel = new CSS2DObject(newDiv);
+        newLabel.position.set(0, 0.2, 0);
+        newLabel.center.set(0, 1);
+        newLabel.layers.set(1);
+        obj.add(newLabel);
     }
-}
 
-const thingyControls = document.getElementById('thingy-overlays');
-if(thingyControls) {
-    thingyControls.addEventListener('click', (event) => {
-        camera.layers.toggle(1);
+    function addTransformControls(obj, name = "transformControls") {
+        let transformControls = new TransformControls(camera, renderer.domElement);
+        transformControls.addEventListener('change', render);
+        transformControls.attach(obj);
+        transformControls.name = name;
+        transformControls.layers.set(1);
+        scene.add(transformControls);
+    }
+
+    window.addEventListener('resize', render);
+    window.addEventListener('resize', updateSceneOffset);
+
+    document.addEventListener( 'keydown', ( event ) => {
+        if(event.code === 'ShiftLeft') { keyState.shiftKeyLeft = true; }
+        if(event.code === 'ShiftRight') { keyState.shiftKeyRight = true; }
+        updateKeyConfig();
     });
+
+    document.addEventListener( 'keyup', ( event ) => {
+        if(event.code === 'ShiftLeft') { keyState.shiftKeyLeft = false; }
+        if(event.code === 'ShiftRight') { keyState.shiftKeyRight = false; }    
+        updateKeyConfig();
+    });
+
+    if(container) {
+        container.addEventListener('mouseenter', (event) => {
+            if(cameraControls) {
+                cameraControls.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
+            }
+        });
+
+
+        container.addEventListener('mouseleave', (event) => {
+            if(cameraControls) {
+                cameraControls.mouseButtons.wheel = CameraControls.ACTION.NONE;
+            }
+        });
+    }
+
+    const updateKeyConfig = () => {
+        if(keyState.shiftKeyLeft || keyState.shiftKeyRight) {
+            cameraControls.mouseButtons.left = CameraControls.ACTION.DOLLY;
+        } else {
+            cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;
+        }
+    }
+
+    const thingyControls = document.getElementById('thingy-overlays');
+    if(thingyControls) {
+        thingyControls.addEventListener('click', (event) => {
+            camera.layers.toggle(1);
+        });
+    }
 }
