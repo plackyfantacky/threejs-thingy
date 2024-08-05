@@ -1,129 +1,267 @@
-import * as THREE from 'three'
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+import Stats from 'three/addons/libs/stats.module.js';
 
 import InfiniteGridHelper from '@plackyfantacky/three.infinitegridhelper';
 
-let container, camera, scene, renderer, orbiter, mixer
-let cameraDolly, cameraTarget
-let clock = new THREE.Clock()
+import CameraControls from 'camera-controls';
+CameraControls.install( {THREE: THREE});
 
 
-container = document.getElementById('threejs-thingy')
+let container, canvas, labels, camera, scene, mixer;
+let labelRenderer, renderer;
+let cameraDolly, cameraTarget, cameraControls;
+let clock = new THREE.Clock();
+
+let keyState = {
+    shiftKeyLeft: false,
+    shiftKeyRight: false
+};
+
+
+container = document.getElementById('threejs-thingy');
 if(container) {
-    init().catch(error => console.error(error))
-}
+    canvas = document.getElementById('thingy-canvas');
+    labels = container.querySelector('.thingy-labels');
+    init().catch(error => console.error(error));
 
-function loadModel(url) {
-    const loader = new GLTFLoader()
-    const dracoLoader = new DRACOLoader()
-	dracoLoader.setDecoderPath(wp_vars.plugin_url + 'decoder/')
-	loader.setDRACOLoader(dracoLoader)
-    return loader.loadAsync(url)
-}
-
-async function init() {
-	
-    scene = new THREE.Scene()
-    renderer = new THREE.WebGLRenderer({antialias: true})
-
-    let gltfData = await loadModel(wp_vars.plugin_url + '3d_assets/scene-main.glb')
-
-    if(gltfData) {
-        scene.add(gltfData.scene)
+    async function init() {
         
-        cameraDolly = gltfData.scene.getObjectByName('cameraDolly')
-        cameraTarget = gltfData.scene.getObjectByName('cameraTarget')
-        pixelType = gltfData.scene.getObjectByName('pixeltype')
+        scene = new THREE.Scene();
+        renderer = new THREE.WebGLRenderer({antialias: true, canvas});
+        labelRenderer = new CSS2DRenderer();
+        container.appendChild(renderer.domElement);
 
-        camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000)
-        camera.zoom = 0.75
+        let gltfData = await loadModel(wp_vars.plugin_url + '3d_assets/scene-main.glb');
 
-        //adding this made me go 'WOW' when I saw the lighting
-        const pmremGenerator = new THREE.PMREMGenerator(renderer);
-        scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+        if(gltfData) {
+            
+            scene.add(gltfData.scene);
+            
+            cameraDolly = gltfData.scene.getObjectByName('cameraDolly');
+            cameraTarget = gltfData.scene.getObjectByName('cameraTarget');
+            pixelType = gltfData.scene.getObjectByName('pixeltype');
 
-        //renderer settings
-        renderer.setAnimationLoop(render)
-	    renderer.setPixelRatio(window.devicePixelRatio)
-	    container.appendChild(renderer.domElement)
+            cameraTarget.layers.set(2);
+            cameraDolly.layers.set(2);
+            pixelType.layers.set(2);
 
-        //add some orbit controls to the camera
-        orbiter = new OrbitControls(camera, renderer.domElement)
-        orbiter.enableDamping = true
-    
-        //update the camera with the initial position of the cameraDolly
-        camera.position.copy(cameraDolly.position)
-        //camera.lookAt(cameraTarget.position)
-        orbiter.target = cameraTarget.position
-        orbiter.update()
+            // const stats = new Stats();
+            // container.querySelector('.thingy-stats').appendChild(stats.dom);
 
-        // emptyTarget = new TransformControls(camera, renderer.domElement);
-        // emptyTarget.addEventListener('change', render);
-        // emptyTarget.addEventListener('dragging-changed', function (event) {
-        //     orbiter.enabled = ! event.value;
-        // });
-        // scene.add(emptyTarget);
-        // emptyTarget.attach(cameraTarget);
-        // orbiter.update()
+            camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000);
+            //camera.zoom = 0.75;
+        
+            cameraControls = new CameraControls(camera, labelRenderer.domElement);
+            cameraControls.setLookAt(
+                cameraDolly.position.x,
+                cameraDolly.position.y,
+                cameraDolly.position.z,
+                cameraTarget.position.x,
+                cameraTarget.position.y,
+                cameraTarget.position.z,
+                true
+            );
+            cameraControls.dollyTo(7, true);
+            updateSceneOffset();
+            //cameraControls.setFocalOffset(-2, 0, 0); //this works when the scene is static
 
+            // let newEmpty3 = new THREE.Object3D();
+            // newEmpty3.position.set(cameraDolly.position.z, cameraDolly.position.y, cameraDolly.position.x * -1);
+            // scene.add(newEmpty3);
 
-        // emptyDolly = new TransformControls(camera, renderer.domElement);
-        // emptyDolly.addEventListener('change',  render);
-        // emptyDolly.addEventListener('dragging-changed', function (event) {
-        //     orbiter.enabled = ! event.value;
-        // });
-        // scene.add(emptyDolly);
-        // emptyDolly.attach(cameraDolly);
-        // orbiter.update()
+            //adding this made me go 'WOW' when I saw the lighting
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.04).texture;
 
-        //initialise the background
-        scene.background = new THREE.Color('#ffca8a')
-        let grid = new InfiniteGridHelper(0.1, 1, new THREE.Color('white'), 100, 'xzy');
-        scene.add(grid);
-    
-        //add some lighting
-        let directionalLight = new THREE.DirectionalLight('white', 3, 100)
-        directionalLight.castShadow = true
-        scene.add(new THREE.AmbientLight(0x404040, 12))
-        scene.add(directionalLight)
+            //renderer settings
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
 
-        mixer = new THREE.AnimationMixer(gltfData.scene)
-	
-        //this plays the animation for the cameraTarget
-        mixer.clipAction(gltfData.animations[0]).play()
+            //addTransformControls(cameraTarget, "cameraTargetTransformer");
+            makePositionLabel(cameraTarget);
+            
+            const axesHelper = new THREE.AxesHelper(5);
+            scene.add(axesHelper);
+            axesHelper.layers.set(1);
 
-        //this plays the animation for the cameraDolly following the path
-        mixer.clipAction(gltfData.animations[1]).play()
+            //addTransformControls(cameraDolly, "cameraDollyTransformer");
+            makePositionLabel(cameraDolly);
+            
+            
+            // emptyEmpty3 = new TransformControls(camera, renderer.domElement);
+            // emptyEmpty3.addEventListener('change',  render);
+            // emptyEmpty3.addEventListener('dragging-changed', function (event) { cameraControls.enabled = ! event.value; });
+            // scene.add(emptyEmpty3);
+            // emptyEmpty3.attach(newEmpty3);
+            //let camera
 
-        //console.log('gltfData', gltfData)
+            //initialise the background
+            scene.background = new THREE.Color('#ffca8a');
+            let grid = new InfiniteGridHelper(0.1, 1, new THREE.Color('white'), 100, 'xzy');
+            scene.add(grid);
+        
+            //add some lighting
+            let directionalLight = new THREE.DirectionalLight('white', 3, 100);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            directionalLight.layers.set(2);
+
+            let ambientLight = new THREE.AmbientLight(0x404040, 12);
+            scene.add(ambientLight);
+            ambientLight.layers.set(2);
+
+            mixer = new THREE.AnimationMixer(gltfData.scene)
+        
+            //this plays the animation for the cameraTarget
+            //mixer.clipAction(gltfData.animations[0]).play()
+            //mixer.clipAction(gltfData.animations[1]).play()
+            
+            renderer.setAnimationLoop(animate);
+
+            globalThis.cameraControls = cameraControls;
+            globalThis.renderer = renderer;
+
+            render();
+
+            globalThis.scene = scene;
+        }
     }
-}
 
-function render() {
-    if(resizeRendererToDisplaySize(renderer)) {
+    function loadModel(url) {
+        const loader = new GLTFLoader();
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath(wp_vars.plugin_url + 'decoder/');
+        loader.setDRACOLoader(dracoLoader);
+        return loader.loadAsync(url);
+    }
+
+    function render() {
+        if(resizeRendererToDisplaySize(renderer)) {
+            const canvas = renderer.domElement
+            camera.aspect = canvas.clientWidth / canvas.clientHeight
+            camera.updateProjectionMatrix()
+        }
+        renderer.render(scene, camera)
+        labelRenderer.render(scene, camera)
+    }
+
+    function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement
-        camera.aspect = canvas.clientWidth / canvas.clientHeight
-        camera.updateProjectionMatrix()
-    }
-    if (mixer) mixer.update(clock.getDelta())
-    camera.position.copy(cameraDolly.position)
-	orbiter.update()
-	renderer.render(scene, camera)
-}
 
-function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement
-    const pixelRatio = window.devicePixelRatio
-    const width = Math.floor(canvas.clientWidth * pixelRatio)
-    const height = Math.floor(canvas.clientHeight * pixelRatio)
-    const needResize = canvas.width !== width || canvas.height !== height
-    if (needResize) {
-        renderer.setSize(width, height, false)
+        const width = Math.floor(canvas.closest('.threejs-scene').clientWidth * window.devicePixelRatio)
+        const height = Math.floor(canvas.closest('.threejs-scene').clientHeight * window.devicePixelRatio)
+
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+            renderer.setSize(width, height, false)
+            labelRenderer.setSize(width, height)
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0px';
+            container.appendChild(labelRenderer.domElement);
+        }
+        return needResize
     }
-    return needResize
+
+    function updateSceneOffset() {
+        const canvas = renderer.domElement
+        const pixelRatio = window.devicePixelRatio
+        const width = Math.floor(canvas.closest('.threejs-scene').clientWidth * pixelRatio)
+        
+        if(width > 1024) {
+            cameraControls.setFocalOffset(-1.5, 0, 0);
+        } else {
+            cameraControls.setFocalOffset(0, 0, 0);
+        }
+
+        render()
+    }
+
+    function animate() {
+        const delta = clock.getDelta();
+        const updated = cameraControls.update(delta);
+        mixer.update(delta);
+        render();
+    }
+
+    // function animateCamera() {
+    //     const delta = clock.getDelta();
+    //     mixer.update(delta);
+    //     render();
+    // }
+
+    function makePositionLabel(obj) {
+        const tempDiv = document.getElementById('thingy-label-template').cloneNode(true);
+        let newDiv = tempDiv.content.firstElementChild;
+        
+        newDiv.querySelector('.x').textContent = obj.position.x;
+        newDiv.querySelector('.y').textContent = obj.position.y;
+        newDiv.querySelector('.z').textContent = obj.position.z;
+
+        const newLabel = new CSS2DObject(newDiv);
+        newLabel.position.set(0, 0.2, 0);
+        newLabel.center.set(0, 1);
+        newLabel.layers.set(1);
+        obj.add(newLabel);
+    }
+
+    function addTransformControls(obj, name = "transformControls") {
+        let transformControls = new TransformControls(camera, renderer.domElement);
+        transformControls.addEventListener('change', render);
+        transformControls.attach(obj);
+        transformControls.name = name;
+        transformControls.layers.set(1);
+        scene.add(transformControls);
+    }
+
+    window.addEventListener('resize', render);
+    window.addEventListener('resize', updateSceneOffset);
+
+    document.addEventListener( 'keydown', ( event ) => {
+        if(event.code === 'ShiftLeft') { keyState.shiftKeyLeft = true; }
+        if(event.code === 'ShiftRight') { keyState.shiftKeyRight = true; }
+        updateKeyConfig();
+    });
+
+    document.addEventListener( 'keyup', ( event ) => {
+        if(event.code === 'ShiftLeft') { keyState.shiftKeyLeft = false; }
+        if(event.code === 'ShiftRight') { keyState.shiftKeyRight = false; }    
+        updateKeyConfig();
+    });
+
+    if(container) {
+        container.addEventListener('mouseenter', (event) => {
+            if(cameraControls) {
+                cameraControls.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
+            }
+        });
+
+
+        container.addEventListener('mouseleave', (event) => {
+            if(cameraControls) {
+                cameraControls.mouseButtons.wheel = CameraControls.ACTION.NONE;
+            }
+        });
+    }
+
+    const updateKeyConfig = () => {
+        if(keyState.shiftKeyLeft || keyState.shiftKeyRight) {
+            cameraControls.mouseButtons.left = CameraControls.ACTION.DOLLY;
+        } else {
+            cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;
+        }
+    }
+
+    const thingyControls = document.getElementById('thingy-overlays');
+    if(thingyControls) {
+        thingyControls.addEventListener('click', (event) => {
+            camera.layers.toggle(1);
+        });
+    }
 }

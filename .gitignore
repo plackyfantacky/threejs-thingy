@@ -1,11 +1,14 @@
 node_modules
 .vscode
 .DS_Store
+package-lock.json
 
-3d_assets/*
 src/js/lib/*
 src/blend/*
 
-!3d_assets/.gitkeep
 !src/js/lib/.gitkeep
 !src/blend/.gitkeep
+dist
+dist/threejs-thingy.css
+dist/threejs-thingy.js
+dist/threejs-thingy.js.map
