@@ -7,8 +7,8 @@ await esbuild.build({
     bundle: true,
     outdir: './',
     target: ['es2018'],
-    minify: true,
-    sourcemap: false,
+    minify: false,
+    sourcemap: true,
     logLevel: 'info',
     plugins: [],
 })
