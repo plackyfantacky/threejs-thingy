@@ -1,44 +1,44 @@
 {
-	"name": "threejs-thingy",
-	"version": "0.1.0",
-	"description": "A simple threejs starter",
-	"main": "Gruntfile.js",
-	"author": {
-		"name": "Adam Trickett",
-		"email": "me@adamtrickett.com",
-		"url": "https://adamtrickett.com"
-	},
-	"scripts": {
+    "name": "threejs-thingy",
+    "version": "0.1.0",
+    "description": "A simple threejs starter",
+    "main": "Gruntfile.js",
+    "author": {
+        "name": "Adam Trickett",
+        "email": "me@adamtrickett.com",
+        "url": "https://adamtrickett.com"
+    },
+    "scripts": {
         "dev:js": "node _esbuild/dev.config.mjs",
         "dev:css": "tailwindcss -i src/css/main.css -o dist/threejs-thingy.css",
         "dev": "npm run dev:js && npm run dev:css",
-		"build:js": "node _esbuild/build.config.mjs",
-		"build:css": "tailwindcss -i src/css/main.css -o dist/threejs-thingy.css --minify",
+        "build:js": "node _esbuild/build.config.mjs",
+        "build:css": "tailwindcss -i src/css/main.css -o dist/threejs-thingy.css --minify",
         "build": "npm run build:js && npm run build:css",
-		"watch:js": "node _esbuild/watch.config.mjs",
-		"watch:css": "tailwindcss src/css/main.css -o dist/threejs-thingy.css --watch",
-		"watch": "concurrently \"npm run watch:js\" \"npm run watch:css\""
-	},
-	"license": "UNLICENSED",
-	"config": {
-		"project": "threejs-thingy",
-		"target": "",
-		"url": "https://adamtrickett.com"
-	},
-	"dependencies": {
-		"@plackyfantacky/three.infinitegridhelper": "^1.0.1",
-		"camera-controls": "^2.8.5",
-		"three": "^0.155.0"
-	},
-	"devDependencies": {
-		"autoprefixer": "^10.4.19",
-		"concurrently": "^8.2.2",
-		"daisyui": "^4.12.10",
-		"esbuild": "^0.23.0",
-		"postcss": "^8.4.39",
-		"postcss-import": "^16.1.0",
-		"postcss-nested": "^6.0.1",
-		"postcss-nested-ancestors": "^3.0.0",
-		"tailwindcss": "^3.4.4"
-	}
+        "watch:js": "node _esbuild/watch.config.mjs",
+        "watch:css": "tailwindcss src/css/main.css -o dist/threejs-thingy.css --watch",
+        "watch": "concurrently \"npm run watch:js\" \"npm run watch:css\""
+    },
+    "license": "UNLICENSED",
+    "config": {
+        "project": "threejs-thingy",
+        "target": "",
+        "url": "https://adamtrickett.com"
+    },
+    "dependencies": {
+        "@plackyfantacky/three.infinitegridhelper": "^1.0.1",
+        "camera-controls": "^2.8.5",
+        "three": "^0.155.0"
+    },
+    "devDependencies": {
+        "autoprefixer": "^10.4.19",
+        "concurrently": "^8.2.2",
+        "daisyui": "^4.12.10",
+        "esbuild": "^0.23.0",
+        "postcss": "^8.4.39",
+        "postcss-import": "^16.1.0",
+        "postcss-nested": "^6.0.1",
+        "postcss-nested-ancestors": "^3.0.0",
+        "tailwindcss": "^3.4.4"
+    }
 }
