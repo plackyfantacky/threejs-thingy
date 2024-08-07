@@ -1,0 +1,54 @@
+name: Deploy to Digital Ocean
+run-name: ${{ github.actor }} is deploying to Digital Ocean 
+on:
+  push:
+    branches:
+      - main
+jobs:
+    Deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Configure SSH
+              run: |
+                mkdir -p ~/.ssh
+                echo "$SSH_KEY" > ~/.ssh/staging.key
+                chmod 600 ~/.ssh/staging.key
+                cat >> ~/.ssh/config << END
+                Host staging
+                    HostName $SSH_HOST
+                    User $SSH_USER
+                    IdentityFile ~/.ssh/staging.key
+                    StrictHostKeyChecking no
+                END
+              env:
+                SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+                SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+                SSH_HOST: ${{ secrets.STAGING_SSH_HOSTNAME }}
+            
+            - name: Git Fetch
+              run: |
+                cat <<'EOT' | ssh -t staging /bin/bash
+                cd /var/www/ariom.id.au/wordpress/wp-content/plugins/threejs-thingy
+                git fetch --all
+                echo "${{ secrets.SUDO_PASS }}" | sudo -S git reset --hard origin/main
+                git pull origin main
+                EOT
+
+            - name: Install dependencies
+              run: |
+                cat <<'EOT' | ssh -t staging /bin/bash
+                export NVM_DIR=~/.nvm; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                echo "Installing dependencies"
+                cd /var/www/ariom.id.au/wordpress/wp-content/plugins/threejs-thingy
+                npm install
+
+            - name: Build assets
+              run: |
+                cat <<'EOT' | ssh -t staging /bin/bash
+                export NVM_DIR=~/.nvm; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                echo "Building assets (1/3)"
+                cd /var/www/ariom.id.au/wordpress/wp-content/plugins/threejs-thingy
+                npm run build
