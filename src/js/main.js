@@ -68,7 +68,20 @@ if(container) {
                 cameraTarget.position.z,
                 true
             );
+
+            // const boundaryHelper = new THREE.Mesh(
+            //     new THREE.BoxGeometry(1,1,1),
+            //     new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } )
+            // );
+
+            // scene.add(boundaryHelper);
+            // boundaryHelper.position.set( 0, 0, 0 );
+	        // boundaryHelper.scale.set( 10, 10, 10 );
+
+            setBoundary();
+
             cameraControls.dollyTo(7, true);
+            
             updateSceneOffset();
             //cameraControls.setFocalOffset(-2, 0, 0); //this works when the scene is static
 
@@ -126,6 +139,7 @@ if(container) {
             renderer.setAnimationLoop(animate);
 
             globalThis.cameraControls = cameraControls;
+            globalThis.setBoundary = setBoundary;
             globalThis.renderer = renderer;
 
             render();
@@ -170,14 +184,16 @@ if(container) {
     }
 
     function updateSceneOffset() {
+        console.log('updating scene offset');
         const canvas = renderer.domElement
         const pixelRatio = window.devicePixelRatio
         const width = Math.floor(canvas.closest('.threejs-scene').clientWidth * pixelRatio)
-        
+        const height = Math.floor(canvas.closest('.threejs-scene').clientHeight * pixelRatio)
+
         if(width > 1024) {
-            cameraControls.setFocalOffset(-1.5, 0, 0);
+            setCameraOffset(width, height);
         } else {
-            cameraControls.setFocalOffset(0, 0, 0);
+            //cameraControls.setFocalOffset(0, 0, 0);
         }
 
         render()
@@ -188,6 +204,33 @@ if(container) {
         const updated = cameraControls.update(delta);
         mixer.update(delta);
         render();
+    }
+
+    function setBoundary() {
+        const boundary = new THREE.Box3(
+            new THREE.Vector3( -10.0, -10.0, -10.0 ),
+            new THREE.Vector3( 10.0, 10.0, 10.0 )
+        );
+        cameraControls.setBoundary(boundary);
+        cameraControls.boundaryEnclosesCamera = true;
+    }
+
+    function setCameraOffset(width, height) {
+
+        let twoThirdsWidth = width * 0.66, twoThirdsHeight = height * 0.66;
+
+        let twoThirdsWidthOffset = (width - twoThirdsWidth) / 2, twoThirdsHeightOffset = (height - twoThirdsHeight) / 2;
+        
+
+        camera.setViewOffset(
+            width,
+            height,
+            twoThirdsWidthOffset * -1,
+            0,
+            width,
+            height
+        );
+        camera.updateProjectionMatrix();
     }
 
     // function animateCamera() {
