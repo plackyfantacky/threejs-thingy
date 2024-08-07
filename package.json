@@ -13,7 +13,7 @@
         "dev:css": "tailwindcss -i src/css/main.css -o dist/threejs-thingy.css",
         "dev": "npm run dev:js && npm run dev:css",
         "build:js": "node _esbuild/build.config.mjs",
-        "build:css": "npx postcss -o ./dist/threejs-thingy.css ./_src/css/main.css",
+        "build:css": "npx postcss -o ./dist/threejs-thingy.css ./src/css/main.css",
         "build": "npm run build:js && npm run build:css",
         "watch:js": "node _esbuild/watch.config.mjs",
         "watch:css": "tailwindcss src/css/main.css -o dist/threejs-thingy.css --watch",
