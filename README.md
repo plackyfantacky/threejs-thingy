@@ -1,6 +1,6 @@
 # threejs-thingy
 
-Super janky WordPress plugin that adds a shortcode to output and render a ThreeJS scene.
+A somewhat jankyt WordPress plugin that adds a shortcode to output and render a ThreeJS scene.
 
 ### Usage
 
