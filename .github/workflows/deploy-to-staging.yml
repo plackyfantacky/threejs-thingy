@@ -31,7 +31,7 @@ jobs:
             - name: Git Fetch
               run: |
                 cat <<'EOT' | ssh -t staging /bin/bash
-                cd /var/www/ariom.id.au/wordpress/wp-content/plugins/threejs-thingy
+                cd /var/www/shared/threejs-thingy
                 git fetch --all
                 echo "${{ secrets.SUDO_PASS }}" | sudo -S git reset --hard origin/main
                 git pull origin main
@@ -42,13 +42,14 @@ jobs:
                 cat <<'EOT' | ssh -t staging /bin/bash
                 export NVM_DIR=~/.nvm; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
                 echo "Installing dependencies"
-                cd /var/www/ariom.id.au/wordpress/wp-content/plugins/threejs-thingy
+                cd /var/www/shared/threejs-thingy
                 npm install
 
             - name: Build assets
               run: |
                 cat <<'EOT' | ssh -t staging /bin/bash
                 export NVM_DIR=~/.nvm; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-                echo "Building assets (1/3)"
-                cd /var/www/ariom.id.au/wordpress/wp-content/plugins/threejs-thingy
+                export NODE_ENV="production"
+                echo "Building assets"
+                cd /var/www/shared/threejs-thingy
                 npm run build
