@@ -23,13 +23,10 @@
         ), $atts));
 
         ob_start();
-
 		?>
-
+        <?php if($debug == 'true'): ?>
             <div class="drawer ariom-drawer h-full">
-                <?php if($debug): ?>
-                    <input type="checkbox" id="drawer-toggle" class="drawer-toggle" />
-                <?php endif; ?>
+                <input type="checkbox" id="drawer-toggle" class="drawer-toggle" />
                 <div class="drawer-content h-full max-h-full">
                     <div id="threejs-thingy">
                         <canvas id="thingy-canvas"></canvas>
@@ -55,6 +52,21 @@
                     </ul>
                 </div>
             </div>
+        <?php else: ?>
+            <div id="threejs-thingy">
+                <canvas id="thingy-canvas"></canvas>
+                <div class="thingy-stats"></div>
+                <div class="thingy-labels">
+                    <template id="thingy-label-template">
+                        <div class="label">
+                            <span class="x">x</span>
+                            <span class="y">y</span>
+                            <span class="z">z</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        <?php endif; ?>
         <?php
 
         return ob_get_clean();
@@ -64,6 +76,5 @@
     add_shortcode('threejs-thingy-controls', 'threejs_thingy_controls_shortcode');
     function threejs_thingy_controls_shortcode() {
         return <<<HTML
-            
         HTML;
     }   

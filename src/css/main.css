@@ -5,7 +5,7 @@
 @layer base {
 
     #threejs-thingy {
-        @apply w-full h-full relative;
+        @apply w-full h-full relative overflow-hidden;
 
         .thingy-stats {
             @apply absolute top-0 left-0;

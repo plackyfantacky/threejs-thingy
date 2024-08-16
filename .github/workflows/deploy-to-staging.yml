@@ -33,7 +33,7 @@ jobs:
                 cat <<'EOT' | ssh -t staging /bin/bash
                 cd /var/www/shared/threejs-thingy
                 git fetch --all
-                echo "${{ secrets.SUDO_PASS }}" | sudo -S git reset --hard origin/main
+                git reset --hard origin/main
                 git pull origin main
                 EOT
 

@@ -266,7 +266,7 @@ if(container) {
     window.addEventListener('resize', render);
     window.addEventListener('resize', updateSceneOffset);
 
-    document.addEventListener( 'keydown', ( event ) => {
+    document.addEventListener('keydown', ( event ) => {
         if(event.code === 'ShiftLeft') { keyState.shiftKeyLeft = true; }
         if(event.code === 'ShiftRight') { keyState.shiftKeyRight = true; }
         updateKeyConfig();
@@ -284,7 +284,6 @@ if(container) {
                 cameraControls.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
             }
         });
-
 
         container.addEventListener('mouseleave', (event) => {
             if(cameraControls) {
